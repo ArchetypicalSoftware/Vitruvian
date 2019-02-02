@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spigot", "Spigot\Spigot.csproj", "{DD49C3C4-9014-4427-A6AF-6F9A850F040A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DF4675E5-8B96-4EF9-9380-369B9159A57C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spigot.Tests", "Spigot.Tests\Spigot.Tests.csproj", "{1D2D406B-8538-41B8-B99D-F971027C520C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian", "Vitruvian\Archetypical.Software.Vitruvian.csproj", "{6F73D244-773A-4BC4-8D21-B7EA0824018C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spigot.Tests.Load", "Spigot.Tests.Load\Spigot.Tests.Load.csproj", "{2D33C08E-40C4-4B13-8AA9-EF4EB9D49A84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian.Web.Gateway", "Vitruvian.Web.Gateway\Archetypical.Software.Vitruvian.Web.Gateway.csproj", "{D9D15E0E-9522-418F-99EC-99DCAAF0B73E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian.Samples", "Vitruvian.Samples\Archetypical.Software.Vitruvian.Samples.csproj", "{87FB09DB-D4DC-4D40-8DF6-67452B15FC93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,25 +17,25 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DD49C3C4-9014-4427-A6AF-6F9A850F040A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD49C3C4-9014-4427-A6AF-6F9A850F040A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD49C3C4-9014-4427-A6AF-6F9A850F040A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD49C3C4-9014-4427-A6AF-6F9A850F040A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1D2D406B-8538-41B8-B99D-F971027C520C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D2D406B-8538-41B8-B99D-F971027C520C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D2D406B-8538-41B8-B99D-F971027C520C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D2D406B-8538-41B8-B99D-F971027C520C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D33C08E-40C4-4B13-8AA9-EF4EB9D49A84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D33C08E-40C4-4B13-8AA9-EF4EB9D49A84}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D33C08E-40C4-4B13-8AA9-EF4EB9D49A84}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D33C08E-40C4-4B13-8AA9-EF4EB9D49A84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F73D244-773A-4BC4-8D21-B7EA0824018C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F73D244-773A-4BC4-8D21-B7EA0824018C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F73D244-773A-4BC4-8D21-B7EA0824018C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F73D244-773A-4BC4-8D21-B7EA0824018C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9D15E0E-9522-418F-99EC-99DCAAF0B73E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9D15E0E-9522-418F-99EC-99DCAAF0B73E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9D15E0E-9522-418F-99EC-99DCAAF0B73E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9D15E0E-9522-418F-99EC-99DCAAF0B73E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87FB09DB-D4DC-4D40-8DF6-67452B15FC93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87FB09DB-D4DC-4D40-8DF6-67452B15FC93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87FB09DB-D4DC-4D40-8DF6-67452B15FC93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87FB09DB-D4DC-4D40-8DF6-67452B15FC93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1D2D406B-8538-41B8-B99D-F971027C520C} = {DF4675E5-8B96-4EF9-9380-369B9159A57C}
-		{2D33C08E-40C4-4B13-8AA9-EF4EB9D49A84} = {DF4675E5-8B96-4EF9-9380-369B9159A57C}
+		{D9D15E0E-9522-418F-99EC-99DCAAF0B73E} = {DF4675E5-8B96-4EF9-9380-369B9159A57C}
+		{87FB09DB-D4DC-4D40-8DF6-67452B15FC93} = {DF4675E5-8B96-4EF9-9380-369B9159A57C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7C89E520-A431-470B-896F-F0A2B04BE761}
