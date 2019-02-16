@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian.Samples", "Tests\Vitruvian.Samples\Archetypical.Software.Vitruvian.Samples.csproj", "{87FB09DB-D4DC-4D40-8DF6-67452B15FC93}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian.Microsite", "Tests\Vitruvian.Microsite\Archetypical.Software.Vitruvian.Microsite.csproj", "{50641BD8-701A-47AF-94DC-15DF346BC4AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian.Tests.Microsite", "Tests\Vitruvian.Microsite\Archetypical.Software.Vitruvian.Tests.Microsite.csproj", "{50641BD8-701A-47AF-94DC-15DF346BC4AA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archetypical.Software.Vitruvian.Microsite", "Vitruvian.Microsite\Archetypical.Software.Vitruvian.Microsite.csproj", "{23CEAA05-FE7B-4D83-9738-5B98EBE4321E}"
 EndProject
