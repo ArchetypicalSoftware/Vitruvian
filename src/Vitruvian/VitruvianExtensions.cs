@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Archetypical.Software.Vitruvian.Common.Interfaces;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,15 +9,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Archetypical.Software.Vitruvian
 {
     public static class VitruvianExtensions
     {
-        private static HttpClientHandler handler = new HttpClientHandler { UseCookies = false };
-        private static readonly HttpClient Client = new HttpClient(handler);
+        private static readonly HttpClientHandler Handler = new HttpClientHandler { UseCookies = false };
+        private static readonly HttpClient Client = new HttpClient(Handler);
 
-        private static readonly List<string> _unsupportedRequestHeaders =
+        private static readonly List<string> UnsupportedRequestHeaders =
             new List<string>{
                 "Transfer-Encoding"
             };
@@ -26,62 +28,103 @@ namespace Archetypical.Software.Vitruvian
             app.UseVitruvian(cfg => { }, env);
         }
 
-        public static void UseVitruvian(this IApplicationBuilder app, Action<VitruvianConfiguration> cfg, IHostingEnvironment env)
+        private static (string slug, IEnumerable<string> downstreamPathSegments) ResolveSlug(HttpContext ctx)
         {
-            var configs = new VitruvianConfiguration();
-            cfg(configs);
-            app.Run(async ctx =>
+            var url = new UriBuilder(ctx.Request.Scheme, ctx.Request.Host.Host, ctx.Request.Host.Port.GetValueOrDefault(80), ctx.Request.Path.Value).Uri;
+            var segments = url.Segments.ToList();
+            segments.RemoveAll(x => x.Equals("/"));
+            var slug = segments.FirstOrDefault() ?? "/";
+            slug = slug.Trim('/');
+            if (string.IsNullOrWhiteSpace(slug))
             {
-                var sw = Stopwatch.StartNew();
+                //make this slug the root
+                slug = "/";
+            }
+            var newPathSegments = segments.Count > 1 ? segments.Skip(1) : new List<string>();
+            return (slug, newPathSegments);
+        }
 
-                var url = new UriBuilder(ctx.Request.Scheme, ctx.Request.Host.Host,
-                    ctx.Request.Host.Port.GetValueOrDefault(80), ctx.Request.Path.Value).Uri;
-                var slug =
-                    url.Segments.FirstOrDefault(x => !x.Equals("/")) ?? "/";
+        private static async Task VitruvianHandler(HttpContext ctx, IServiceProvider applicationServices)
+        {
+            var sw = Stopwatch.StartNew();
 
-                var newPathSegments = url.Segments.Skip(1);
+            var slugResult = ResolveSlug(ctx);
 
-                var resolver = app.ApplicationServices.GetService<IMicroSiteResolverProvider>();
-                var microsite = await resolver.GetBySlug(slug);
-                if (microsite.Any())
+            var resolver = applicationServices.GetService<IMicrositeResolver>();
+            var microsite = await resolver.GetBySlugAsync(slugResult.slug);
+            if (microsite.Any())
+            {
+                try
                 {
-                    try
-                    {
-                        var req = new HttpRequestMessage();
-                        ctx.Request.Headers.ToList().ForEach(h => req.Headers.Add(h.Key, h.Value.ToString()));
-                        var cookieHeader = string.Join("; ", ctx.Request.Cookies.ToList().Select(cookie => $"{cookie.Key}={cookie.Value}"));
-                        req.Headers.Add("Cookie", cookieHeader);
-                        req.RequestUri = new UriBuilder(microsite.First().Endpoints.First().Uri + string.Join("/", newPathSegments)).Uri;
-                        req.Headers.Host = req.RequestUri.Host;
-                        var response = await Client.SendAsync(req);
-                        response.Headers.ToList().ForEach(h => ctx.Response.Headers.Add(h.Key, string.Join(";", h.Value)));
-                        response.Content.Headers.ToList().ForEach(h => ctx.Response.Headers.Add(h.Key, string.Join(";", h.Value)));
-                        ctx.Response.StatusCode = (int)response.StatusCode;
+                    var req = new HttpRequestMessage();
+                    ctx.Request.Headers.ToList().ForEach(h => req.Headers.Add(h.Key, h.Value.ToString()));
+                    var cookieHeader = string.Join("; ", ctx.Request.Cookies.ToList().Select(cookie => $"{cookie.Key}={cookie.Value}"));
+                    req.Headers.Add("Cookie", cookieHeader);
+                    req.RequestUri = new UriBuilder(microsite.First().Endpoints.First().Uri + string.Join("/", slugResult.downstreamPathSegments)).Uri;
+                    req.Headers.Host = req.RequestUri.Host;
+                    var response = await Client.SendAsync(req);
+                    response.Headers.ToList().ForEach(h => ctx.Response.Headers.Add(h.Key, string.Join(";", h.Value)));
+                    response.Content.Headers.ToList().ForEach(h => ctx.Response.Headers.Add(h.Key, string.Join(";", h.Value)));
+                    ctx.Response.StatusCode = (int)response.StatusCode;
 
-                        var otherResponse = await response.Content.ReadAsStreamAsync();
-                        _unsupportedRequestHeaders.ForEach(key => ctx.Response.Headers.Remove(key));
-                        ctx.Response.Headers.Add("Vitruvian-Elapsed", sw.Elapsed.ToString());
-                        ctx.Response.Headers.Add("Vitruvian-Server", Environment.MachineName);
-                        ctx.Response.Headers.Add("Vitruvian-Thread", Thread.CurrentThread.ManagedThreadId.ToString());
-                        await otherResponse.CopyToAsync(ctx.Response.Body);
-                        await ctx.Response.Body.FlushAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        ctx.Response.StatusCode = 500;
-                        await ctx.Response.WriteAsync(e.ToString());
-                    }
+                    var otherResponse = await response.Content.ReadAsStreamAsync();
+                    UnsupportedRequestHeaders.ForEach(key => ctx.Response.Headers.Remove(key));
+                    ctx.Response.Headers.Add("Vitruvian-Elapsed", sw.Elapsed.ToString());
+                    ctx.Response.Headers.Add("Vitruvian-Server", Environment.MachineName);
+                    ctx.Response.Headers.Add("Vitruvian-Thread", Thread.CurrentThread.ManagedThreadId.ToString());
+                    await otherResponse.CopyToAsync(ctx.Response.Body);
+                    await ctx.Response.Body.FlushAsync();
                 }
-                else
+                catch (Exception e)
                 {
-                    await ctx.Response.WriteAsync($"Hi there. Your slug is {slug} and your resolver is {resolver}");
+                    ctx.Response.StatusCode = 500;
+                    await ctx.Response.WriteAsync(e.ToString());
                 }
-            });
+            }
+            else
+            {
+                await ctx.Response.WriteAsync($"Hi there. Your slug is {slugResult.slug} and your resolver is {resolver}");
+            }
+        }
+
+        public static void UseVitruvian(this IApplicationBuilder app, Action<VitruvianBehaviorConfiguration> cfg, IHostingEnvironment env)
+        {
+            var configs = new VitruvianBehaviorConfiguration();
+            cfg(configs);
+            var adminHandler = app.ApplicationServices.GetService<AdministrationHandlers>();
+            app.Map("/vitruvian/admin", apb => apb.Run(adminHandler.AdminDelegate));
+            app.Run(ctx => VitruvianHandler(ctx, app.ApplicationServices));
 
             var life = app.ApplicationServices.GetService<IApplicationLifetime>();
 
-            life.ApplicationStarted.Register(OnStarted);
-            life.ApplicationStopping.Register(OnStopping);
+            life.ApplicationStarted.Register(() =>
+            {
+                configs.StartupActions.ForEach(a =>
+                {
+                    try
+                    {
+                        a();
+                    }
+                    catch (Exception e)
+                    {
+                        //Log
+                    }
+                });
+            });
+            life.ApplicationStopping.Register(() =>
+            {
+                configs.ShutdownActions.ForEach(a =>
+                {
+                    try
+                    {
+                        a();
+                    }
+                    catch (Exception e)
+                    {
+                        //Log
+                    }
+                });
+            });
         }
 
         public static void AddVitruvian(this IServiceCollection services, Action<VitruvianConfiguration> cfg)
@@ -89,6 +132,22 @@ namespace Archetypical.Software.Vitruvian
             var config = new VitruvianConfiguration();
             cfg(config);
             services.AddSingleton(config.Resolver);
+            services.AddSingleton<AdministrationHandlers>();
+        }
+
+        public static void AddMicrositeResolver(this VitruvianConfiguration cfg, IMicrositeResolver resolver)
+        {
+            cfg.Resolver = resolver;
+        }
+
+        public static void AddStartupAction(this VitruvianBehaviorConfiguration cfg, Action startupAction)
+        {
+            cfg.StartupActions.Add(startupAction);
+        }
+
+        public static void AddShutdownAction(this VitruvianBehaviorConfiguration cfg, Action shutdownAction)
+        {
+            cfg.StartupActions.Add(shutdownAction);
         }
     }
 }

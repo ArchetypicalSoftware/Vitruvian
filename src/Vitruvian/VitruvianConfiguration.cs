@@ -1,12 +1,9 @@
-﻿namespace Archetypical.Software.Vitruvian
+﻿using Archetypical.Software.Vitruvian.Common.Interfaces;
+
+namespace Archetypical.Software.Vitruvian
 {
     public class VitruvianConfiguration
     {
-        public void RegisterResolver(IMicroSiteResolverProvider resolver)
-        {
-            Resolver = resolver;
-        }
-
-        internal IMicroSiteResolverProvider Resolver { get; set; }
+        internal IMicrositeResolver Resolver { get; set; }
     }
 }
