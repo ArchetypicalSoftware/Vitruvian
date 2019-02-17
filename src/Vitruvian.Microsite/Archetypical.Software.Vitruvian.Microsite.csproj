@@ -9,6 +9,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>

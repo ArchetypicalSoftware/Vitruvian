@@ -1,4 +1,4 @@
-﻿namespace Archetypical.Software.Vitruvian.Models
+﻿namespace Archetypical.Software.Vitruvian.Common.Models
 {
     public enum Command
     {

@@ -1,6 +1,4 @@
-﻿using Archetypical.Software.Vitruvian.Common;
-
-namespace Archetypical.Software.Vitruvian.Models.Responses
+﻿namespace Archetypical.Software.Vitruvian.Common.Models.Responses
 {
     public class AddResponse : BaseResponse
     {

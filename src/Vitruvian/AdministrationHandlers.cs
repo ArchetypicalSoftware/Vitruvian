@@ -1,10 +1,9 @@
 ﻿using Archetypical.Software.Vitruvian.Common.Interfaces;
-using Archetypical.Software.Vitruvian.Models.Commands;
-using Archetypical.Software.Vitruvian.Models.Responses;
+using Archetypical.Software.Vitruvian.Common.Models;
+using Archetypical.Software.Vitruvian.Common.Models.Commands;
+using Archetypical.Software.Vitruvian.Common.Models.Responses;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -13,13 +12,6 @@ namespace Archetypical.Software.Vitruvian
     public class AdministrationHandlers
     {
         private IMicrositeResolver _resolver;
-
-        private readonly JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings
-        {
-            Converters = new List<JsonConverter> { new VersionConverter(), new StringEnumConverter() },
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            NullValueHandling = NullValueHandling.Ignore
-        };
 
         public AdministrationHandlers(IMicrositeResolver resolver)
         {
@@ -43,7 +35,7 @@ namespace Archetypical.Software.Vitruvian
                     var command = JsonConvert.DeserializeObject<BaseCommand>(str);
                     switch (command.Command)
                     {
-                        case Models.Command.Unknown:
+                        case Command.Unknown:
                             response = new UnknownResponse()
                             {
                                 IsSuccessful = false,
@@ -51,18 +43,18 @@ namespace Archetypical.Software.Vitruvian
                             };
                             break;
 
-                        case Models.Command.List:
+                        case Command.List:
                             response = await ListHandlerAsync(command as ListCommand);
                             break;
 
-                        case Models.Command.Add:
+                        case Command.Add:
                             response = await AddHandlerAsync(command as AddCommand);
                             break;
 
-                        case Models.Command.Update:
+                        case Command.Update:
                             break;
 
-                        case Models.Command.Delete:
+                        case Command.Delete:
                             break;
                     }
                     await WriteResponse(response, ctx);
@@ -73,7 +65,7 @@ namespace Archetypical.Software.Vitruvian
         private Task WriteResponse(BaseResponse response, HttpContext ctx)
         {
             ctx.Response.ContentType = "application/json";
-            return ctx.Response.WriteAsync(JsonConvert.SerializeObject(response, _jsonSerializerSettings));
+            return ctx.Response.WriteAsync(JsonConvert.SerializeObject(response, SerializerSettings.CommandJsonSerializerSettings));
         }
 
         public async Task<BaseResponse> ListHandlerAsync(ListCommand command)

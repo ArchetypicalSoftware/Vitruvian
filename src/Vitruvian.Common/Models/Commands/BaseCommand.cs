@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 
-namespace Archetypical.Software.Vitruvian.Models.Commands
+namespace Archetypical.Software.Vitruvian.Common.Models.Commands
 {
     [JsonConverter(typeof(BaseCommandConverter))]
     public abstract class BaseCommand
     {
-        protected internal abstract Command Command { get; }
+        public abstract Command Command { get; }
     }
 }

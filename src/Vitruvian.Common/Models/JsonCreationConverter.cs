@@ -1,10 +1,22 @@
-﻿using Archetypical.Software.Vitruvian.Models.Commands;
+﻿using Archetypical.Software.Vitruvian.Common.Models.Commands;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 
-namespace Archetypical.Software.Vitruvian.Models
+namespace Archetypical.Software.Vitruvian.Common.Models
 {
+    public static class SerializerSettings
+    {
+        public static JsonSerializerSettings CommandJsonSerializerSettings = new JsonSerializerSettings
+        {
+            Converters = new List<JsonConverter> { new VersionConverter(), new StringEnumConverter() },
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+    }
+
     public abstract class JsonCreationConverter<T> : JsonConverter
     {
         /// <summary>
@@ -63,7 +75,17 @@ namespace Archetypical.Software.Vitruvian.Models
         {
             if (FieldExists(CommandField, jObject))
             {
-                var command = jObject.Value<Command>(CommandField);
+                Command command = Command.Unknown;
+                var enumValue = jObject.Value<string>(CommandField);
+                if (int.TryParse(enumValue, out int enumInt))
+                {
+                    command = (Command)enumInt;
+                }
+                else
+                {
+                    Enum.TryParse<Command>(enumValue, out command);
+                }
+
                 switch (command)
                 {
                     case Command.List:

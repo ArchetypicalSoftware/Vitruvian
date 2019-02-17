@@ -1,7 +1,6 @@
-﻿using Archetypical.Software.Vitruvian.Common;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Archetypical.Software.Vitruvian.Models.Responses
+namespace Archetypical.Software.Vitruvian.Common.Models.Responses
 {
     public class ListResponse : BaseResponse
     {

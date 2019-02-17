@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Archetypical.Software.Vitruvian.Models.Responses
+namespace Archetypical.Software.Vitruvian.Common.Models.Responses
 {
     public abstract class BaseResponse
     {
