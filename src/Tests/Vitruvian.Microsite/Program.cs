@@ -12,7 +12,7 @@ namespace Vitruvian.Microsite
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseKestrel()
+                .UseKestrel().CaptureStartupErrors(true)
                 .UseStartup<Startup>();
     }
 }

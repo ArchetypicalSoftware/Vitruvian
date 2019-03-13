@@ -25,7 +25,7 @@ namespace Archetypical.Software.Vitruvian.Microsite
         {
             var life = app.ApplicationServices.GetService<IApplicationLifetime>();
             var config = app.ApplicationServices.GetService<MicrositeConfiguration>();
-            IServerAddressesFeature feature = app.ApplicationServices.GetService<IServer>().Features
+            var feature = app.ApplicationServices.GetService<IServer>().Features
                 .FirstOrDefault(x => x.Value is IServerAddressesFeature).Value as IServerAddressesFeature;
             var addresses = feature?.Addresses;
             config.Endpoint = addresses?.Select(x => new Common.Endpoint(new Uri(x))).FirstOrDefault();
@@ -42,7 +42,13 @@ namespace Archetypical.Software.Vitruvian.Microsite
                 req.Content =
                     new StringContent(JsonConvert.SerializeObject(command,
                         SerializerSettings.CommandJsonSerializerSettings), System.Text.Encoding.UTF8, "application/json");
-                var response = await Client.SendAsync(req);
+                try
+                {
+                    var response = await Client.SendAsync(req);
+                }
+                catch (Exception)
+                {
+                }
                 //publish im coming up
             });
             life.ApplicationStopping.Register(async () =>
