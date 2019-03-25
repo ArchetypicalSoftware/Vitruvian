@@ -60,7 +60,7 @@ namespace Archetypical.Software.Vitruvian
                     ctx.Request.Headers.ToList().ForEach(h => req.Headers.Add(h.Key, h.Value.ToString()));
                     var cookieHeader = string.Join("; ", ctx.Request.Cookies.ToList().Select(cookie => $"{cookie.Key}={cookie.Value}"));
                     req.Headers.Add("Cookie", cookieHeader);
-                    req.RequestUri = new UriBuilder(microsite.First().Endpoints.First().Uri + string.Join("/", slugResult.downstreamPathSegments)).Uri;
+                    req.RequestUri = new UriBuilder(microsite.First().Endpoint.Uri + string.Join("/", slugResult.downstreamPathSegments)).Uri;
                     req.Headers.Host = req.RequestUri.Host;
                     var response = await Client.SendAsync(req);
                     response.Headers.ToList().ForEach(h => ctx.Response.Headers.Add(h.Key, string.Join(";", h.Value)));

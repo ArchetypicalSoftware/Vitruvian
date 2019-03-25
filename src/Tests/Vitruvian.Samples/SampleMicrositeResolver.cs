@@ -30,7 +30,7 @@ namespace Archetypical.Software.Vitruvian.Samples
 
         public Task<(Microsite microsite, bool success, string message)> RegisterAsync(Microsite microSite)
         {
-            var existing = _sites.Find(x => x.Slug.Equals(microSite.Slug, StringComparison.CurrentCultureIgnoreCase));
+            var existing = _sites.Find(x => x.Slug.Equals(microSite.Slug, StringComparison.CurrentCultureIgnoreCase) && x.Endpoint.Uri.Equals(microSite.Endpoint.Uri));
             if (existing == null)
             {
                 _sites.Add(microSite);
@@ -38,36 +38,17 @@ namespace Archetypical.Software.Vitruvian.Samples
             }
             else
             {
-                foreach (var endpoint in microSite.Endpoints)
-                {
-                    if (!existing.Endpoints.Contains(endpoint))
-                    {
-                        existing.Endpoints.Add(endpoint);
-                    }
-                }
                 return Task.FromResult((existing, true, "Updated existing Microsite"));
             }
         }
 
         public Task<(Microsite microsite, bool success, string message)> UnRegisterAsync(Microsite microSite)
         {
-            var existing = _sites.Find(x => x.Slug.Equals(microSite.Slug, StringComparison.CurrentCultureIgnoreCase));
+            var existing = _sites.Find(x => x.Slug.Equals(microSite.Slug, StringComparison.CurrentCultureIgnoreCase) && x.Endpoint.Uri.Equals(microSite.Endpoint.Uri));
             if (existing != null)
             {
-                foreach (var endpoint in microSite.Endpoints)
-                {
-                    if (existing.Endpoints.Contains(endpoint))
-                    {
-                        existing.Endpoints.Remove(endpoint);
-                    }
-                }
-
-                if (!existing.Endpoints.Any())
-                {
-                    _sites.Remove(existing);
-                    return Task.FromResult((existing, true, "Fully removed Microsite"));
-                }
-                return Task.FromResult((existing, true, "Removed Microsite Endpoints"));
+                _sites.Remove(existing);
+                return Task.FromResult((existing, true, "Fully removed Microsite"));
             }
             return Task.FromResult((microSite, false, "No instance registered for Microsite"));
         }

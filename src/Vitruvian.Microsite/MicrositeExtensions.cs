@@ -1,17 +1,18 @@
-﻿using Archetypical.Software.Vitruvian.Common.Models;
-using Archetypical.Software.Vitruvian.Common.Models.Commands;
+﻿using Archetypical.Software.Vitruvian.Common.Models.Commands;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
+using Polly;
+using Polly.Extensions.Http;
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Reflection;
 
 namespace Archetypical.Software.Vitruvian.Microsite
@@ -21,6 +22,25 @@ namespace Archetypical.Software.Vitruvian.Microsite
         private static readonly HttpClientHandler Handler = new HttpClientHandler { UseCookies = false };
         private static readonly HttpClient Client = new HttpClient(Handler);
 
+        public static string GetFullyQualifiedDomainName()
+        {
+            string domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName;
+            string hostName = Dns.GetHostName();
+
+            if (string.IsNullOrWhiteSpace(domainName) || domainName.Equals("(none)" /*This is a docker thing*/))
+            {
+                return hostName;
+            }
+
+            domainName = "." + domainName;
+            if (!hostName.EndsWith(domainName))  // if hostname does not already include domain name
+            {
+                hostName += domainName;   // add the domain name part
+            }
+
+            return hostName;// return the fully qualified name
+        }
+
         public static void UseAsMicrositeWithVitruvian(this IApplicationBuilder app)
         {
             var life = app.ApplicationServices.GetService<IApplicationLifetime>();
@@ -28,44 +48,35 @@ namespace Archetypical.Software.Vitruvian.Microsite
             var feature = app.ApplicationServices.GetService<IServer>().Features
                 .FirstOrDefault(x => x.Value is IServerAddressesFeature).Value as IServerAddressesFeature;
             var addresses = feature?.Addresses;
-            config.Endpoint = addresses?.Select(x => new Common.Endpoint(new Uri(x))).FirstOrDefault();
+            if (addresses != null && addresses.Any())
+            {
+                config.Endpoint = addresses.Select(x =>
+                {
+                    var url = new Uri(x.Replace("+:", "localhost:").Replace("::", "localhost:"));
+                    if (url.Host.Equals("localhost"))
+                    {
+                        url = new UriBuilder(url.Scheme, GetFullyQualifiedDomainName(), url.Port, url.PathAndQuery).Uri;
+                    }
+                    return new Common.Endpoint(url);
+                }).FirstOrDefault();
+            }
+
             life.ApplicationStarted.Register(async () =>
             {
-                var req = new HttpRequestMessage();
-                req.Method = HttpMethod.Post;
-                req.RequestUri = new Uri(config.VitruvianGatewayUri, "/vitruvian/admin");
                 var command = new AddCommand
                 {
                     Microsite = config.MicroSite
                 };
 
-                req.Content =
-                    new StringContent(JsonConvert.SerializeObject(command,
-                        SerializerSettings.CommandJsonSerializerSettings), System.Text.Encoding.UTF8, "application/json");
-                try
-                {
-                    var response = await Client.SendAsync(req);
-                }
-                catch (Exception)
-                {
-                }
-                //publish im coming up
+                await app.ApplicationServices.GetService<IVitruvianGatewayClient>().SendCommand(command);
             });
             life.ApplicationStopping.Register(async () =>
             {
-                var req = new HttpRequestMessage();
-                req.Method = HttpMethod.Post;
-                req.RequestUri = new Uri(config.VitruvianGatewayUri, "/vitruvian/admin");
                 var command = new DeleteCommand
                 {
                     Microsite = config.MicroSite
                 };
-                req.Content =
-                    new StringContent(JsonConvert.SerializeObject(command,
-                        SerializerSettings.CommandJsonSerializerSettings), System.Text.Encoding.UTF8, "application/json");
-
-                var response = await Client.SendAsync(req);
-                //publish im going down
+                await app.ApplicationServices.GetService<IVitruvianGatewayClient>().SendCommand(command);
             });
 
             app.Map("/microsite/probe", apb => { apb.Run(ctx => ctx.Response.WriteAsync("Healthy")); });
@@ -79,51 +90,30 @@ namespace Archetypical.Software.Vitruvian.Microsite
             {
                 config.Version = Assembly.GetCallingAssembly().GetName().Version;
             }
-            //TODO: Add the URL helper to prepend the Slug the Links
-            //services.AddScoped<IActionContextAccessor, ActionContextAccessor>();
-            //services.AddScoped<IUrlHelper>(x =>
-            //{
-            //    var actionContext = x.GetService<IActionContextAccessor>().ActionContext;
-            //    return new MicrositeUrlHelper(actionContext);
-            //});
+
+            services.AddSingleton<IUrlHelperFactory, MicrositeUrlHelperFactory>();
+
             services.AddSingleton(config);
+
+            services.AddHttpClient<IVitruvianGatewayClient, VitruvianGatewayClient>()
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))  //Set lifetime to five minutes
+                .AddPolicyHandler(GetRetryPolicy());
+            Random jitter = new Random();
+            Policy
+                .Handle<HttpRequestException>() // etc
+                .WaitAndRetry(5,    // exponential back-off plus some jitter
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))
+                                    + TimeSpan.FromMilliseconds(jitter.Next(0, 100))
+                );
         }
-    }
 
-    public class MicrositeUrlHelper : IUrlHelper
-    {
-        private ActionContext _actionContext;
-
-        public MicrositeUrlHelper(ActionContext actionContext)
+        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         {
-            _actionContext = actionContext;
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
+                    retryAttempt)));
         }
-
-        public string Action(UrlActionContext actionContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string Content(string contentPath)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsLocalUrl(string url)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string RouteUrl(UrlRouteContext routeContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string Link(string routeName, object values)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ActionContext ActionContext { get; set; }
     }
 }

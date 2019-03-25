@@ -36,7 +36,7 @@ namespace Vitruvian.Microsite
                 cfg.AddTags("Tests");
                 cfg.AddTags("Microsite", "Vitruvian");
 
-                cfg.VitruvianGatewayUri = new Uri("https://localhost:5001");
+                cfg.VitruvianGatewayUri = new Uri(Environment.GetEnvironmentVariable("Vitruvian_Gateway_Url"));
             });
         }
 

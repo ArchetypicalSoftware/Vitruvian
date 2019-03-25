@@ -15,11 +15,7 @@ namespace Archetypical.Software.Vitruvian.Common
             Slug = slug;
             Name = name;
             Version = version;
-            if (endpoint != null)
-            {
-                Endpoints = new List<Endpoint> { endpoint };
-            }
-
+            Endpoint = endpoint;
             Tags = tags.ToList();
         }
 
@@ -31,6 +27,6 @@ namespace Archetypical.Software.Vitruvian.Common
 
         public List<string> Tags { get; }
 
-        public List<Endpoint> Endpoints { get; }
+        public Endpoint Endpoint { get; }
     }
 }

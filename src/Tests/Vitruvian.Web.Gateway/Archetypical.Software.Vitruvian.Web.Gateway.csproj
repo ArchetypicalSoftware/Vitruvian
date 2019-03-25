@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Archetypical.Software.Vitruvian.Resolvers.Consul\Archetypical.Software.Vitruvian.Resolvers.Consul.csproj" />
     <ProjectReference Include="..\Vitruvian.Samples\Archetypical.Software.Vitruvian.Samples.csproj" />
   </ItemGroup>
 

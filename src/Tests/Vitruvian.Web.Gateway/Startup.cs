@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Archetypical.Software.Vitruvian.Resolvers.Consul;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,7 +13,11 @@ namespace Archetypical.Software.Vitruvian.Web.Gateway
         {
             services.AddVitruvian(cfg =>
             {
-                cfg.AddMicrositeResolver(new Samples.SampleMicrositeResolver());
+                cfg.AddMicrositeResolver(new ConsulMicrositeResolver(config =>
+                {
+                    // This will use the default settings (pointing to local host)
+                    //additional config here.
+                }));
             });
         }
 
@@ -21,6 +26,8 @@ namespace Archetypical.Software.Vitruvian.Web.Gateway
         {
             app.UseVitruvian(cfg =>
             {
+                //additional config here.
+                //Startup/stutdown etc
             }, env);
         }
     }
