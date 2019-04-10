@@ -23,4 +23,3 @@ A *microsite* is a single purpose, standalone website that services anything fro
 
 # [Collaborative MicroSite](docs/Microsites/Collaborative/README.md)
 These *microsites* extend the basic *microsite* but include a remote session module and a distributed View Engine for loading templates from a singular location
-
